@@ -1,5 +1,6 @@
 #ifndef __GLOBAL_H
 #define __GLOBAL_H
+
 extern pthread_t parsing;
 extern pthread_t treatment;
 
@@ -10,6 +11,7 @@ extern pthread_cond_t endExecuting;
 
 extern char **commande;
 extern Save save;
+extern int isSave;
 
 extern int exitProgram;
 extern int endExecute;

@@ -13,15 +13,16 @@ pthread_cond_t endExecuting;
 char **commande;
 Save save;
 
-int exitProgram;
-int endExecute;
-
 int currentSave;
 int numberSave;
+int isSave ;
+int exitProgram;
+int endExecute;
 
 int c;
 int nombreMot;
 int nombreLettre;
+
 
 
 /*
@@ -39,11 +40,14 @@ int parse(){
 		config.c_cc[VTIME] = 0;
 		tcsetattr(STDIN_FILENO, TCSANOW, &config);
 		if((d = getchar()) == 91){
+			int k = 0;
 			if((d=getchar()) == 65){
-				int k = 0;
 			//	for(k=0;k<save.taille[numberSave-1];k++)
 			//		printf("%s",save.string[numberSave-1][k]);
-				if(currentSave >= 0){
+				if(currentSave == -1){
+					currentSave = numberSave;
+				}
+				else if(currentSave >= 0 && numberSave > 0){
 					nombreMot = save.taille[currentSave];
 					commande = calloc(MAXWORD,sizeof(char*));
 				//	printf("currentSave = %d ",currentSave);
@@ -62,7 +66,31 @@ int parse(){
 					}
 					currentSave--;
 					nombreLettre = 0;
-				//	nombreMot++;
+					isSave = 1;
+				}
+			}
+			else if(d == 66){
+				if(currentSave == numberSave+1){
+					currentSave = 0;
+				}
+				else if(currentSave <= numberSave){
+					nombreMot = save.taille[currentSave];
+					commande = calloc(MAXWORD,sizeof(char*));
+					for(k=0;k<MAXWORD;k++){
+						commande[k] = calloc(MAXCHAR, sizeof(char));
+					}
+					for(k=0;k<save.taille[currentSave];k++){
+						strcpy(commande[k], save.string[currentSave][k]);
+					}
+					/*\0332K = Erase line \033u = cursor go to the last save*/
+					printf("\033[2K \033[u \033[1D\033[1D\033[1D\033[1D$ ");
+					for(k=0;k<nombreMot;k++){
+						printf("%s ", commande[k]);
+					}
+					currentSave++;
+					nombreLettre = 0;
+					commande[nombreMot][0] = '\0';
+					isSave = 1;
 				}
 			}
 			c = 0;
@@ -73,6 +101,7 @@ int parse(){
 		if(nombreLettre < MAXCHAR){
 			printf("%c",(char)c);
 			commande[nombreMot][nombreLettre++] = (char)c;
+			isSave = 0;
 		}else{
 			fprintf(stdin,"Taille dépasse la limite autorisée\n");
 			c = 10;
@@ -83,6 +112,7 @@ int parse(){
 		if(nombreMot < MAXWORD){
 			nombreLettre = 0;
 			nombreMot++;
+			isSave = 0;
 		}else{
 			c = 10;
 			puts("Trop de mots, FIN");
@@ -94,11 +124,15 @@ int parse(){
 			nombreLettre--;
 			commande[nombreMot][nombreLettre] = '\0';
 			printf("\033[1D \033[1D");
+		//	isSave = 0;
 		}
 		else if(nombreLettre==0 && nombreMot>0){
 			nombreMot--;
 			nombreLettre = sizeof(commande[nombreMot])-1;
 			printf("\033[1D \033[1D");
+		//	isSave = 0;
+		}
+		else{
 		}
 	}
 	return 0;
@@ -148,7 +182,8 @@ void *readInput(void *t){
 
 		}while(c != 27 && c != 10);
 		puts(" ");
-		nombreMot++;
+		if(!isSave)
+			nombreMot++;
 		
 		/*
 		 * We save the commande that we type
@@ -160,6 +195,7 @@ void *readInput(void *t){
 				save.string[numberSave][i] = calloc(strlen(commande[i]),sizeof(char));
 				strcpy(save.string[numberSave][i], commande[i]);
 			}
+			//save.string[numberSave][i-1][nombreLettre] = '\0';
 			save.taille[numberSave] = nombreMot;
 			numberSave++;
 		}

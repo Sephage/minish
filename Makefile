@@ -1,7 +1,7 @@
 all : minish
 
-minish : parse.c input.c lib.h
-	gcc -o minish parse.c input.c -pthread -g -Wall
+minish : core.c input.c lib.h
+	gcc -o minish core.c input.c -pthread -g -Wall
 
 print : paulMinish
 	echo "Pour mettre ce bash en standard : sudo cp ./<Exe> /usr/bin/"
