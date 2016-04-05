@@ -124,16 +124,13 @@ int parse(){
 			nombreLettre--;
 			commande[nombreMot][nombreLettre] = '\0';
 			printf("\033[1D \033[1D");
-		//	isSave = 0;
 		}
 		else if(nombreLettre==0 && nombreMot>0){
 			nombreMot--;
 			nombreLettre = sizeof(commande[nombreMot])-1;
 			printf("\033[1D \033[1D");
-		//	isSave = 0;
 		}
-		else{
-		}
+		isSave = 0;
 	}
 	return 0;
 }
@@ -142,13 +139,12 @@ int parse(){
 /*
  * Thread qui parse ce que l'on saisi
  * TODO :
- *	Retour en arriere pris en compte
- *	Prise en compte de & => dire a execute DONE
  */
 void *readInput(void *t){
 	int k;
 	struct termios initial;
 	struct termios config;
+	char *dir = "";
 
 	tcgetattr(STDIN_FILENO, &initial);
 	config = initial;
@@ -170,7 +166,8 @@ void *readInput(void *t){
 		}
 		pthread_mutex_unlock(&mutex);
 
-		fputs("$ ", stdout);
+		printf("%s", getcwd(dir, 1024));
+		fputs(" $ ", stdout);
 		printf("\033[s");
 		endExecute = 0;
 		do{

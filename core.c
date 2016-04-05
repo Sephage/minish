@@ -34,12 +34,13 @@ void *execute(void *p){
 	int k;
 	int pid;
 	int background = 0;
+	int cd = 1;
 
 	while(!exitProgram){
 		pthread_mutex_lock(&mutex);
 		pthread_cond_wait(&endCmd, &mutex);
 
-		if(commande[0][0] != '\0'){
+		if(commande[0][0] != '\0' && (cd = strncmp(commande[0],"cd",2))){
 			if(strlen(commande[nombreMot-1]) == 1){
 				if(!strncmp(commande[nombreMot-1], "&", 1)){
 					nombreMot--;
@@ -71,6 +72,18 @@ void *execute(void *p){
 				while(waitpid(pid,0,0) <= 0);
 			}
 		}
+		else if(!cd){
+			cd = 1;
+			if(commande[1][0] == '\0'){
+			}
+
+			chdir(commande[1]);
+		//	currentDirectory = getcwd(currentDirectory, 1000);
+		//	printf("%s", currentDirectory);
+
+
+		}
+
 
 		pthread_cond_signal(&endExecuting);
 		endExecute = 1;
